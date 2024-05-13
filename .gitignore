@@ -1,0 +1,7 @@
+### adicionar a pasta env e teste para o git ignorar
+
+# Ignorar a pasta .env
+.env/
+
+# Ignorar a pasta .teste
+.teste/
