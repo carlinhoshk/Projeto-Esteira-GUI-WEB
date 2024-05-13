@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Esteira</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#esteira").hide(); // Oculta o GIF inicialmente
+
+            $("#iniciar").click(function(){
+                $("#esteira").show(); // Mostra o GIF quando o botão "Iniciar" é clicado
+                $.get("/continuar"); // Chama a rota para continuar a animação
+            });
+
+            $("#parar").click(function(){
+                $("#esteira").hide(); // Oculta o GIF quando o botão "Parar" é clicado
+                $.get("/parar"); // Chama a rota para parar a animação
+            });
+
+            function atualizarProgresso() {
+                $.get("/progresso", function(data){
+                    $("#esteira").css("left", data + "%");
+                    if (data < 100) {
+                        setTimeout(atualizarProgresso, 100);
+                    }
+                });
+            }
+            atualizarProgresso();
+        });
+    </script>
+    <style>
+        #esteira {
+            position: absolute;
+            top: 50px; /* Ajuste conforme necessário */
+            left: 12px; /* Corrigido para especificar unidade de medida */
+            width: 200px; /* Largura desejada */
+            height: auto; /* Altura automática para manter a proporção */
+        }
+        .botoes {
+            margin-top: 20px; /* Espaçamento entre o GIF e os botões */
+        }
+    </style>
+</head>
+<body>
+    <div style="position: relative; width: 100%; height: 200px;">
+        <img id="esteira" src="{{ url_for('static', filename='esteira.gif') }}" alt="Esteira">
+    </div>
+    <div class="botoes">
+        <button id="iniciar">Iniciar</button>
+        <button id="parar">Parar</button>
+    </div>
+</body>
+</html>
