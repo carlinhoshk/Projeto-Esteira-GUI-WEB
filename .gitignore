@@ -3,5 +3,7 @@
 # Ignorar a pasta .env
 .env/
 
+env/*
+
 # Ignorar a pasta .teste
 .teste/
