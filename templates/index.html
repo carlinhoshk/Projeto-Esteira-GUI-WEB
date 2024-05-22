@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Esteira</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#esteira").hide();
+            $("#grafico").hide();
+
+            $("#iniciar").click(function(){
+                let limite = prompt("Digite o limite de produtos de cada área:");
+                if (limite) {
+                    $.post("/iniciar", { limite: limite }, function(response){
+                        alert(response.status);
+                        if (response.status === "Simulação iniciada.") {
+                            $("#esteira").show();
+                            atualizarGrafico();
+                        }
+                    });
+                }
+            });
+
+            $("#parar").click(function(){
+                $.post("/parar", function(response){
+                    alert(response.status);
+                    if (response.status === "Simulação parada.") {
+                        $("#esteira").hide();
+                        $("#grafico").hide();
+                    }
+                });
+            });
+
+            function atualizarGrafico() {
+                $.get("/images", function(data){
+                    if (data.latest_grafico) {
+                        $("#grafico").attr("src", "static/images/" + data.latest_grafico);
+                        $("#grafico").show();
+                    } else {
+                        $("#grafico").hide();
+                    }
+                    setTimeout(atualizarGrafico, 2000);  // Atualiza a cada 2 segundos
+                });
+            }
+
+            function checarAlerta() {
+                $.get("/alerta", function(response){
+                    if (response.alert) {
+                        let resposta = prompt(response.message + "\nPressione 'C' para continuar, 'S' para sair ou 'B' para configurar a balança");
+                        $.post("/resposta", { resposta: resposta }, function(res){
+                            alert(res.status);
+                            if (res.configurar_balanca) {
+                                let peso_minimo = prompt("Insira o novo peso mínimo desejado em gramas:");
+                                if (peso_minimo) {
+                                    $.post("/balanca", { peso_minimo: peso_minimo }, function(resp){
+                                        alert(resp.status);
+                                    });
+                                }
+                            } else if (res.status === "Sistema encerrado.") {
+                                $("#esteira").hide();
+                                $("#grafico").hide();
+                            } else if (res.status === "Continuando a simulação.") {
+                                $("#esteira").show();
+                                atualizarGrafico();
+                            }
+                        });
+                    }
+                    setTimeout(checarAlerta, 1000);
+                });
+            }
+            checarAlerta();
+        });
+    </script>
+    <style>
+        #esteira {
+            position: relative;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: auto;
+        }
+        .botoes {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .botoes button {
+            margin: 5px;
+        }
+        #parar {
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #grafico {
+            display: block;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="botoes">
+        <button id="iniciar">Iniciar</button>
+        <button id="parar">EMERGENCIA</button>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <img id="esteira" src="{{ url_for('static', filename='esteira.gif') }}" alt="Esteira">
+        <img id="grafico" src="#" alt="Gráfico">
+    </div>
+</body>
+</html>
